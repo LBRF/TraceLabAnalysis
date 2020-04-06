@@ -1,4 +1,4 @@
-# TraceLabAnalysis
+# TraceLabAnalysis (Legacy)
 
 A set of R scripts for importing, preprocessing, and visualizing data collected with [TraceLab](https://github.com/LBRF/TraceLab).
 
@@ -7,6 +7,8 @@ A set of R scripts for importing, preprocessing, and visualizing data collected 
 
 
 These scripts are designed to be a template that different TraceLab analyses can be based on, leaving final data cleaning and modelling scripts for specific projects to be added by the user.
+
+**Note**: This is the "legacy" branch of the repository, written to closely mirror the output of the original TraceLabR analysis scripts. It is mostly intended for regression testing and personal reference.
 
 ## Requirements
 
@@ -33,7 +35,7 @@ source('./_Scripts/1_preprocessing.R') # imports and preprocesses data
 
 Running the preprocessing script will also run the import script, so in most cases you just want to run the second line.
 
-To build the rest of the analysis pipeline for a project, additional numbered scripts should be added to the `_Scripts` folder (e.g. `2_descriptives.R`, `3_models.R`, `4_report.R`, etc.), the first of which should call `source("./_Scripts/1_preprocessing.R")` near the top.
+To build the rest of the analysis pipeline for a project, additional numbered scripts should be added to the `_Scripts` folder (e.g. `2_descriptives.R`, `3_models.R`, `4_report.R`, etc.), the first of which should source the preprocessing script near the top.
 
 
 ## Output
