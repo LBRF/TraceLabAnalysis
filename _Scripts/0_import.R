@@ -32,6 +32,8 @@ col_overrides <- cols(
   random_seed = col_skip()
 )
 
+options(readr.show_progress = FALSE)
+
 taskdat <- map_df(taskfiles, function(f) {
   id_num <- as.numeric(gsub("^p(\\d+).*", "\\1", basename(f)))
   df <- read_tsv(f, comment = "#", col_types = col_overrides)
@@ -65,10 +67,10 @@ figfiles <- figfiles[!is_learned]
 figdat <- map_df(figfiles, function(f) {
   tibble(
     fname = gsub("\\.zip", "", basename(f)),
-    points = read_lines(unz(f, paste0(fname, ".tlfp"))),
-    segments = read_lines(unz(f, paste0(fname, ".tlfs"))),
-    frames = read_lines(unz(f, paste0(fname, ".tlf"))),
-    tracing = read_lines(unz(f, paste0(fname, ".tlt")))
+    points = read_file(unz(f, paste0(fname, ".tlfp"))),
+    segments = read_file(unz(f, paste0(fname, ".tlfs"))),
+    frames = read_file(unz(f, paste0(fname, ".tlf"))),
+    tracing = read_file(unz(f, paste0(fname, ".tlt")))
   )
 })
 
@@ -140,7 +142,7 @@ if (length(learnedfiles) > 0) {
   learned <- map_df(learnedfiles, function(f) {
     tibble(
       fname = gsub("\\.zip", "", basename(f)),
-      tracing = read_lines(f)
+      tracing = read_file(f)
     )
   })
 
