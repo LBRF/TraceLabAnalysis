@@ -417,25 +417,22 @@ figtrace_eq <- figtrace %>%
   group_by(id, session, block, trial) %>%
   group_modify(~ match_lengths(.$x, .$y, .$trace.x, .$trace.y))
 
-# Correlate turn angles
-
-cor_raw <- figtrace_eq %>%
-  mutate(turnangle_stim=get_angle_diffs(x, y),
-         turnangle_resp=get_angle_diffs(trace.x, trace.y)) %>%
-  summarise(raw_cor_angle = cor(turnangle_resp,
-                                turnangle_stim, use="complete.obs"))
-
 # Get raw error measures
 
 err_raw <- figtrace_eq %>%
-  mutate(err = line_length(x, y, trace.x, trace.y)) %>%
+  mutate(
+    err = line_length(x, y, trace.x, trace.y),
+    delta = get_angle_diffs(x, y),
+    tdelta = get_angle_diffs(trace.x, trace.y)
+  ) %>%
   summarize(
     raw_err_tot = sum(err),
     raw_err_mean = mean(err),
     raw_err_sd = sd(err),
-    raw_err_paired_sd = paired.sd(err)
+    raw_err_paired_sd = paired.sd(err),
+    raw_err_cor = 1 - cor(delta, tdelta, use="complete.obs"),
+    raw_err_angle = mean(abs(delta - tdelta), na.rm = TRUE)
   )
-
 
 # Get Procrustes error measures
 
@@ -452,6 +449,8 @@ err_proc <- figtrace_eq %>%
     shape_err_paired_sd = paired.sd(err)
   )
 
+
+
 ### Perform accuracy analyses for equidistant tracing responses ###
 
 # Resample stimulus frames to match trace lengths & reinterpolate tracing points
@@ -461,25 +460,22 @@ figtrace_equidist <- figtrace %>%
   group_by(id, session, block, trial) %>%
   group_modify(~ match_lengths(.$x, .$y, .$trace.x, .$trace.y, equidist = TRUE))
 
-# Correlate turn angles
-
-cor_eqd <- figtrace_equidist %>%
-  mutate(turnangle_stim=get_angle_diffs(x, y),
-    turnangle_resp=get_angle_diffs(trace.x, trace.y)) %>%
-  summarise(eqd_cor_delta_angle = eqd_cor_angle = cor(turnangle_resp,
-                                turnangle_stim, use="complete.obs"))
-
 # Get raw error measures
 
 err_eqd <- figtrace_equidist %>%
-  mutate(err = line_length(x, y, trace.x, trace.y)) %>%
+  mutate(
+    err = line_length(x, y, trace.x, trace.y),
+    delta = get_angle_diffs(x, y),
+    tdelta = get_angle_diffs(trace.x, trace.y)
+  ) %>%
   summarize(
     eqd_err_tot = sum(err),
     eqd_err_mean = mean(err),
     eqd_err_sd = sd(err),
-    eqd_err_paired_sd = paired.sd(err)
+    eqd_err_paired_sd = paired.sd(err),
+    eqd_err_cor = 1 - cor(delta, tdelta, use="complete.obs"),
+    eqd_err_angle = mean(abs(delta - tdelta), na.rm = TRUE)
   )
-
 
 # Get Procrustes error measures
 
@@ -496,6 +492,20 @@ err_eqd_proc <- figtrace_equidist %>%
     shape_eqd_err_paired_sd = paired.sd(err)
   )
 
+# Get dtw-by-delta error measures
+
+err_delta_dtw <- figtrace_equidist %>%
+  group_modify(~ dtw2df2(.$x, .$y, .$trace.x, .$trace.y)) %>%
+  mutate(err = line_length(x, y, tx, ty)) %>%
+  summarize(
+    dtw_angle_err_tot = sum(err),
+    dtw_angle_err_mean = mean(err),
+    dtw_angle_err_sd = sd(err),
+    dtw_angle_err_paired_sd = paired.sd(err),
+    dtw_angle_err_cor = 1 - cor(na.omit(delta), na.omit(tdelta)) ** 2,
+    dtw_angle_err_angle = mean(abs(delta - tdelta), na.rm = TRUE)
+  )
+
 
 
 ### Perform accuracy analyses for dtw-processed tracing responses ###
@@ -506,25 +516,22 @@ figtrace_dtw <- figtrace %>%
   group_by(id, session, block, trial) %>%
   group_modify(~ dtw2df(.$x, .$y, .$trace.x, .$trace.y))
 
-# Correlate turn angles
-
-cor_dtw <- figtrace_dtw %>%
-  mutate(turnangle_stim=get_angle_diffs(x_w, y_w),
-    turnangle_resp=get_angle_diffs(trace.x_w, trace.y_w)) %>%
-  summarise(dtw_cor_angle = cor(turnangle_resp,
-                                turnangle_stim, use="complete.obs"))
-
 # Get dynamic time warping error measures
 
 err_dtw <- figtrace_dtw %>%
-  mutate(err = line_length(x_w, y_w, trace.x_w, trace.y_w)) %>%
+  mutate(
+    err = line_length(x_w, y_w, trace.x_w, trace.y_w),
+    delta = get_angle_diffs(x_w, y_w),
+    tdelta = get_angle_diffs(trace.x_w, trace.y_w)
+  ) %>%
   summarize(
     dtw_err_tot = sum(err),
     dtw_err_mean = mean(err),
     dtw_err_sd = sd(err),
-    dtw_err_paired_sd = paired.sd(err)
+    dtw_err_paired_sd = paired.sd(err),
+    dtw_err_cor = 1 - cor(delta, tdelta, use="complete.obs"),
+    dtw_err_angle = mean(abs(delta - tdelta), na.rm = TRUE)
   )
-
 
 # Get dynamic time warping + Procrustes error measures
 
@@ -548,15 +555,13 @@ err_dtw_proc <- figtrace_dtw %>%
 # Join all tracing summary data together
 
 tracesummary <- tracesummary %>%
-  left_join(cor_raw, by = c("id", "session", "block", "trial")) %>%
   left_join(err_raw, by = c("id", "session", "block", "trial")) %>%
   left_join(err_proc, by = c("id", "session", "block", "trial")) %>%
-  left_join(cor_eqd, by = c("id", "session", "block", "trial")) %>%
   left_join(err_eqd, by = c("id", "session", "block", "trial")) %>%
   left_join(err_eqd_proc, by = c("id", "session", "block", "trial")) %>%
-  left_join(cor_dtw, by = c("id", "session", "block", "trial")) %>%
   left_join(err_dtw, by = c("id", "session", "block", "trial")) %>%
-  left_join(err_dtw_proc, by = c("id", "session", "block", "trial"))
+  left_join(err_dtw_proc, by = c("id", "session", "block", "trial")) %>%
+  left_join(err_delta_dtw, by = c("id", "session", "block", "trial"))
 
 
 # Generate proper id key for joining figure data to task data
