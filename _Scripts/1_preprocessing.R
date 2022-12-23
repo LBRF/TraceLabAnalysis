@@ -54,7 +54,7 @@ figsummary <- segments %>%
   select(c(1:trial, real_length, sinuosity, totabscurv))
 
 
-# Calcuate turning angle for entropy metrics
+# Calculate turning angle for entropy metrics
 
 points_per_segment <- 60
 tvals <- seq(0, points_per_segment - 1) / points_per_segment
@@ -115,6 +115,21 @@ responsedat <- tracings %>%
   ) %>%
   filter(is.na(dist) | dist > 0)
 
+#### Read in visual trial inspection ####
+
+#this df should have 5 columns id (num),session (num),block (num),trial (num) & error (chr)
+#error column should have a unique string pattern for each filter
+# 1) "no_shape"
+# 2) "failed_end"
+# 3) "glitch_trial"
+# 4) "false_starts"
+# 5) "hand_noise"
+# 6) "incomplete_tracing"
+# 7) "gap_trials"
+# 8) "hit_screen_edge"
+
+errors <- read_csv("~/Desktop/TraceLabAnalysis-master/_Data/errors.csv")
+
 
 # Flag and drop any trials with no formed shape
 
@@ -138,28 +153,11 @@ if (plot_filters) {
   plot_trials(no_shape_trials, responsedat, outdir = "./filters/no_shape")
 }
 trial_key <- c("id", "session", "block", "trial")
+
+errors <- left_join(errors, no_shape_trials, by = trial_key)%>%
+  select(1:5,no_shape)
+
 responsedat <- anti_join(responsedat, no_shape_trials, by = trial_key)
-
-
-# Trim extra points following failed trial end
-
-responsedat <- responsedat %>%
-  mutate(timediff = ifelse(is.na(lag(time)), 0, time - lag(time))) %>%
-  mutate(done = trial_done(origin.dist, timediff, done_filter_params))
-
-failed_end_trials <- responsedat %>%
-  summarize(
-    samples = n(),
-    num_done = sum(done),
-    mt_diff = max(time[!done]) - max(time),
-    prop_remaining = 1 - (sum(done) / n())
-  ) %>%
-  filter(num_done > 0)
-
-if (plot_filters) {
-  plot_trials(failed_end_trials, responsedat, "done", "./filters/done")
-}
-responsedat <- subset(responsedat, !done)
 
 
 # Flag and remove glitch points during tracings
@@ -173,6 +171,7 @@ responsedat <- responsedat %>%
 glitch_trials <- responsedat %>%
   summarize(
     samples = n(),
+    has_glitch = TRUE,
     glitches = sum(glitch)
   ) %>%
   filter(glitches > 0)
@@ -180,54 +179,11 @@ glitch_trials <- responsedat %>%
 if (plot_filters) {
   plot_trials(glitch_trials, responsedat, "glitch", "./filters/glitch")
 }
+
+errors <- left_join(errors, glitch_trials, by = trial_key)%>%
+  select(1:6,has_glitch)
+
 responsedat <- subset(responsedat, !glitch)
-
-
-# Flag and remove false start samples
-
-responsedat <- responsedat %>%
-  mutate(timediff = ifelse(is.na(lag(time)), 0, time - lag(time))) %>%
-  mutate(false_start = false_start(origin.dist, timediff, false_start_params))
-
-false_starts <- responsedat %>%
-  summarize(
-    samples = n(),
-    flagged = sum(false_start)
-  ) %>%
-  filter(flagged > 0)
-
-if (plot_filters) {
-  plot_trials(false_starts, responsedat, "false_start", "./filters/false_start")
-}
-responsedat <- subset(responsedat, !false_start)
-
-
-# Try to flag and remove hand noise samples
-
-responsedat <- responsedat %>%
-  mutate(
-    timediff = ifelse(is.na(lag(time)), 0, time - lag(time)),
-    angle_diff = (get_angle_diffs(x - lag(x), y - lag(y)) / pi) * 180,
-    dist = line_length(lag(x), lag(y), x, y)
-  ) %>%
-  mutate(
-    hnoise = hand_noise(
-      x, y, timediff, angle_diff, origin.dist, hand_noise_params
-    )
-  )
-
-hand_noise_trials <- responsedat %>%
-  summarize(
-    samples = n(),
-    flagged = sum(hnoise)
-  ) %>%
-  filter(flagged > 0)
-
-if (plot_filters) {
-  plot_trials(hand_noise_trials, responsedat, "hnoise", "./filters/hand_noise")
-}
-responsedat <- subset(responsedat, !hnoise)
-
 
 # Flag and drop trials with incomplete tracings
 
@@ -268,9 +224,91 @@ if (plot_filters) {
     incomplete_trials, frames, responsedat, "./filters/incomplete"
   )
 }
-trial_key <- c("id", "session", "block", "trial")
+
+errors <- left_join(errors, incomplete_trials, by = trial_key)%>%
+  select(1:7,incomplete)
+
 responsedat <- anti_join(responsedat, incomplete_trials, by = trial_key)
 
+# Try to flag and remove hand noise samples
+
+responsedat <- responsedat %>%
+  mutate(
+    timediff = ifelse(is.na(lag(time)), 0, time - lag(time)),
+    angle_diff = (get_angle_diffs(x - lag(x), y - lag(y)) / pi) * 180,
+    dist = line_length(lag(x), lag(y), x, y)
+  ) %>%
+  mutate(
+    hnoise = hand_noise(
+      x, y, timediff, angle_diff, origin.dist, hand_noise_params
+    )
+  )
+
+hand_noise_trials <- responsedat %>%
+  summarize(
+    samples = n(),
+    has_hand_noise=TRUE,
+    flagged = sum(hnoise)
+  ) %>%
+  filter(flagged > 0)
+
+if (plot_filters) {
+  plot_trials(hand_noise_trials, responsedat, "hnoise", "./filters/hand_noise")
+}
+
+errors <- left_join(errors, hand_noise_trials, by = trial_key)%>%
+  select(1:8,has_hand_noise)
+
+responsedat <- subset(responsedat, !hnoise)
+
+
+# Flag and remove false start samples
+
+responsedat <- responsedat %>%
+  mutate(timediff = ifelse(is.na(lag(time)), 0, time - lag(time))) %>%
+  mutate(false_start = false_start(origin.dist, timediff, false_start_params))
+
+false_starts <- responsedat %>%
+  summarize(
+    samples = n(),
+    has_false_start=TRUE,
+    flagged = sum(false_start)
+  ) %>%
+  filter(flagged > 0)
+
+if (plot_filters) {
+  plot_trials(false_starts, responsedat, "false_start", "./filters/false_start")
+}
+
+errors <- left_join(errors, false_starts, by = trial_key)%>%
+  select(1:9,has_false_start)
+
+responsedat <- subset(responsedat, !false_start)
+
+# Trim extra points following failed trial end
+
+responsedat <- responsedat %>%
+  mutate(timediff = ifelse(is.na(lag(time)), 0, time - lag(time))) %>%
+  mutate(done = trial_done(origin.dist, timediff, done_filter_params))
+
+failed_end_trials <- responsedat %>%
+  summarize(
+    samples = n(),
+    failed_end = TRUE,
+    num_done = sum(done),
+    mt_diff = max(time[!done]) - max(time),
+    prop_remaining = 1 - (sum(done) / n())
+  ) %>%
+  filter(num_done > 0)
+
+if (plot_filters) {
+  plot_trials(failed_end_trials, responsedat, "done", "./filters/done")
+}
+
+errors <- left_join(errors, failed_end_trials, by = trial_key)%>%
+  select(1:10,failed_end)
+
+responsedat <- subset(responsedat, !done)
 
 # Flag and drop trials with excessive time or distance gaps
 
@@ -297,8 +335,11 @@ gap_trials <- responsedat %>%
 if (plot_filters) {
   plot_trials(gap_trials, responsedat, "gap", "./filters/large_gap")
 }
-responsedat <- anti_join(responsedat, gap_trials, by = trial_key)
 
+errors <- left_join(errors, gap_trials, by = trial_key)%>%
+  select(1:11,any_gaps)
+
+responsedat <- anti_join(responsedat, gap_trials, by = trial_key)
 
 # Flag (but don't remove) remaining trials where tracing hits edge of screen
 
@@ -311,6 +352,16 @@ edge_trials <- responsedat %>%
   ) %>%
   filter(hit_top_edge | hit_bottom_edge | hit_left_edge | hit_right_edge)
 
+errors <- left_join(errors, edge_trials, by = trial_key)%>%
+  mutate(
+    hit_edge = ifelse(hit_top_edge | hit_bottom_edge | hit_left_edge | hit_right_edge==TRUE,
+                      TRUE, FALSE)) %>%
+  select(1:12,hit_edge)
+
+# Compare results against visual inspection
+
+errors <- errors %>%
+  filter(if_any(5:last_col(),~ !is.na(.)))
 
 # Update metrics for response data, drop unneeded columns
 
@@ -321,8 +372,6 @@ responsedat <- responsedat %>%
     dist = line_length(lag(x), lag(y), x, y)
   ) %>%
   select(-c(done, glitch, false_start, hnoise, gap))
-
-
 
 ### Prepare tracing & figure data for accuracy analysis ###
 
@@ -368,6 +417,13 @@ figtrace_eq <- figtrace %>%
   group_by(id, session, block, trial) %>%
   group_modify(~ match_lengths(.$x, .$y, .$trace.x, .$trace.y))
 
+# Correlate turn angles
+
+cor_raw <- figtrace_eq %>%
+  mutate(turnangle_stim=get_angle_diffs(x, y),
+         turnangle_resp=get_angle_diffs(trace.x, trace.y)) %>%
+  summarise(raw_cor_angle = cor(turnangle_resp,
+                                turnangle_stim, use="complete.obs"))
 
 # Get raw error measures
 
@@ -396,8 +452,6 @@ err_proc <- figtrace_eq %>%
     shape_err_paired_sd = paired.sd(err)
   )
 
-
-
 ### Perform accuracy analyses for equidistant tracing responses ###
 
 # Resample stimulus frames to match trace lengths & reinterpolate tracing points
@@ -407,6 +461,13 @@ figtrace_equidist <- figtrace %>%
   group_by(id, session, block, trial) %>%
   group_modify(~ match_lengths(.$x, .$y, .$trace.x, .$trace.y, equidist = TRUE))
 
+# Correlate turn angles
+
+cor_eqd <- figtrace_equidist %>%
+  mutate(turnangle_stim=get_angle_diffs(x, y),
+    turnangle_resp=get_angle_diffs(trace.x, trace.y)) %>%
+  summarise(eqd_cor_delta_angle = eqd_cor_angle = cor(turnangle_resp,
+                                turnangle_stim, use="complete.obs"))
 
 # Get raw error measures
 
@@ -445,6 +506,13 @@ figtrace_dtw <- figtrace %>%
   group_by(id, session, block, trial) %>%
   group_modify(~ dtw2df(.$x, .$y, .$trace.x, .$trace.y))
 
+# Correlate turn angles
+
+cor_dtw <- figtrace_dtw %>%
+  mutate(turnangle_stim=get_angle_diffs(x_w, y_w),
+    turnangle_resp=get_angle_diffs(trace.x_w, trace.y_w)) %>%
+  summarise(dtw_cor_angle = cor(turnangle_resp,
+                                turnangle_stim, use="complete.obs"))
 
 # Get dynamic time warping error measures
 
@@ -480,10 +548,13 @@ err_dtw_proc <- figtrace_dtw %>%
 # Join all tracing summary data together
 
 tracesummary <- tracesummary %>%
+  left_join(cor_raw, by = c("id", "session", "block", "trial")) %>%
   left_join(err_raw, by = c("id", "session", "block", "trial")) %>%
   left_join(err_proc, by = c("id", "session", "block", "trial")) %>%
+  left_join(cor_eqd, by = c("id", "session", "block", "trial")) %>%
   left_join(err_eqd, by = c("id", "session", "block", "trial")) %>%
   left_join(err_eqd_proc, by = c("id", "session", "block", "trial")) %>%
+  left_join(cor_dtw, by = c("id", "session", "block", "trial")) %>%
   left_join(err_dtw, by = c("id", "session", "block", "trial")) %>%
   left_join(err_dtw_proc, by = c("id", "session", "block", "trial"))
 
