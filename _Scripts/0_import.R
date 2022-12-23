@@ -29,7 +29,9 @@ taskfiles <- list.files(
 col_overrides <- cols(
   sex = col_factor(levels = c("m", "f")),
   handedness = col_factor(levels = c("l", "r", "a")),
-  random_seed = col_skip()
+  random_seed = col_skip(),
+  feedback_type = col_character() 
+  # feedback_type must be coerced to char as NAs will throw errors
 )
 
 options(readr.show_progress = FALSE)
@@ -55,7 +57,9 @@ figfiles <- list.files(
 )
 
 
-# Set aside any "learned" figures in a separate file list
+# Filter used to separate "learned" figures in a separate file list if user is checking for explicit learning.
+
+# NOTE: If the user did not check for explicit learning then the figfiles list is unaltered and all shapes are returned
 
 is_learned <- str_detect(basename(figfiles), "learned")
 learnedfiles <- figfiles[is_learned]
@@ -108,10 +112,9 @@ segment_cols <- c("start.x", "start.y", "end.x", "end.y", "ctrl.x", "ctrl.y")
 segments <- figdat %>%
   select(c(id, session, block, trial, segments)) %>%
   mutate(segments = str_sub(segments, 2, -2)) %>%
-  separate_rows(segments, sep = "\\],\\[") %>%
+  separate_rows(segments, sep = "\\),\\(") %>%
   mutate(segments = str_sub(segments, 2, -2)) %>%
   separate(segments, segment_cols, sep = "[^0-9-.]+", convert = TRUE)
-
 
 # Extract and parse figure animation data
 
