@@ -110,29 +110,87 @@ procrustes2df <- function(x, y, tx, ty) {
   proc_df
 }
 
+dtw2df <- function(x, y, tx, ty, step = mori2006) {
+  
+  # Do dynamic time warping and get warped dataframe
+  tryCatch({
+    warped <- dtw(
+      x = cbind(tx[!is.na(tx)], ty[!is.na(ty)]),
+      y = cbind(x[!is.na(x)], y[!is.na(y)]),
+      dist.method = "Euclidean",
+      step.pattern = step,
+      window.type = "none",
+      keep.internals = TRUE,
+      distance.only = FALSE,
+      open.end = FALSE,
+      open.begin = FALSE
+    )
+    
+    # Return dataframe with warped stimulus and response points
+    dtw_df <- tibble(
+      x_w = x[warped$index2],
+      y_w = y[warped$index2],
+      trace.x_w = tx[warped$index1],
+      trace.y_w = ty[warped$index1]
+    )
+    
+    dtw_df
+  },
+  error = function(x) {
+    tibble(
+      x_w = numeric(0),
+      y_w = numeric(0),
+      trace.x_w = numeric(0),
+      trace.y_w = numeric(0)
+    )
+  })
+}
 
-dtw2df <- function(x, y, tx, ty, step = symmetric2) {
-
+dtw2df2 <- function(
+    x, y, tx, ty, step = mori2006, open_ends = FALSE, absolute = FALSE, upsample = 1
+) {
+  
+  if (upsample > 1) {
+    tmp <- reinterpolate(x, y, NA, TRUE, n = round(length(x) * upsample))
+    x <- tmp$x
+    y <- tmp$y
+  }
+  
+  time <- 1:length(x) * (1 / 60)
+  delt <- get_angle_diffs(x, y)
+  tdelt <- get_angle_diffs(tx, ty)
+  
+  d1 <- scale(tdelt[!is.na(tdelt)])
+  d2 <- scale(delt[!is.na(delt)])
+  if (absolute) {
+    d1 <- abs(d1)
+    d2 <- abs(d2)
+  }
+  
   # Do dynamic time warping and get warped dataframe
   warped <- dtw(
-    x = cbind(tx[!is.na(tx)], ty[!is.na(ty)]),
-    y = cbind(x[!is.na(x)], y[!is.na(y)]),
-    dist.method = "Euclidean",
+    x = d1,
+    y = d2,
     step.pattern = step,
     window.type = "none",
     keep.internals = TRUE,
     distance.only = FALSE,
-    open.end = FALSE,
-    open.begin = FALSE
+    open.end = open_ends,
+    open.begin = open_ends
   )
-
+  
   # Return dataframe with warped stimulus and response points
   dtw_df <- tibble(
-    x_w = x[warped$index2],
-    y_w = y[warped$index2],
-    trace.x_w = tx[warped$index1],
-    trace.y_w = ty[warped$index1]
-  )
-
+    tw = time[warped$index2],
+    x = x[warped$index2],
+    y = y[warped$index2],
+    delta = na.omit(delt)[warped$index2],
+    ttw = time[warped$index1],
+    tx = tx[warped$index1],
+    ty = ty[warped$index1],
+    tdelta = na.omit(tdelt)[warped$index1]
+  ) %>%
+  mutate(time = 1:n() * (1 / 60))
+  
   dtw_df
 }
