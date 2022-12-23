@@ -111,7 +111,7 @@ procrustes2df <- function(x, y, tx, ty) {
 }
 
 
-dtw2df <- function(x, y, tx, ty, step = asymmetric) {
+dtw2df <- function(x, y, tx, ty, step = symmetric2) {
 
   # Do dynamic time warping and get warped dataframe
   warped <- dtw(
