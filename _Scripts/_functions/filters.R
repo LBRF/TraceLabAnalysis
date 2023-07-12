@@ -1,11 +1,13 @@
-### Filters for cleaning tracing data before processing ###
+#### Filters for cleaning tracing data before processing ####
 
 
-### Import required libraries ###
+#### Import required libraries ####
 
 library(dplyr)
 
 
+
+#### Filters ####
 
 # Flags extra points following unsuccessful trial end
 
@@ -57,7 +59,6 @@ trial_done <- function(origin_dist, timediff, params) {
   missed | slow_end | stopped_near
 }
 
-
 # Flags points from touchscreen glitches
 
 is_glitch <- function(x, y, angle_diff, origin_dist, params) {
@@ -103,7 +104,6 @@ is_glitch <- function(x, y, angle_diff, origin_dist, params) {
   angle_glitch | double_glitch | start_glitch | end_glitch
 }
 
-
 # Flag points preceeding abnormal time jump within part of tracing
 
 false_start <- function(origin_dist, timediff, params) {
@@ -125,7 +125,6 @@ false_start <- function(origin_dist, timediff, params) {
 
   false_start
 }
-
 
 # Flag points likely to be due to accidental input from other part of hand
 
@@ -176,7 +175,6 @@ hand_noise <- function(x, y, timediff, angle_diff, origin_dist, params) {
   noise
 }
 
-
 # Flag tracings likely to be accidentally incomplete
 
 is_incomplete <- function(end_gap, size_ratio, len_ratio, shift_diff, params) {
@@ -193,7 +191,6 @@ is_incomplete <- function(end_gap, size_ratio, len_ratio, shift_diff, params) {
 
   too_small | no_return | accidental_end
 }
-
 
 # Flag excessive time or distance gaps during tracings
 
