@@ -3,7 +3,8 @@
 ###################################
 
 
-### Import required packages ###
+
+#### Import required packages ####
 
 library(readr)
 library(purrr)
@@ -14,7 +15,7 @@ library(stringr)
 
 
 
-### Import task data ###
+#### Import task data ####
 
 # Get file list
 
@@ -23,15 +24,13 @@ taskfiles <- list.files(
   full.names = TRUE
 )
 
-
 # Import trial-by-trial task data
 
 col_overrides <- cols(
   sex = col_factor(levels = c("m", "f")),
   handedness = col_factor(levels = c("l", "r", "a")),
-  random_seed = col_skip(),
   feedback_type = col_character() 
-  # feedback_type must be coerced to char as NAs will throw errors
+  # feedback_type must be coerced to char due to presence the use of NA in SQL
 )
 
 options(readr.show_progress = FALSE)
@@ -47,7 +46,7 @@ taskdat <- map_df(taskfiles, function(f) {
 
 
 
-### Import figure and tracing data ###
+#### Import figure and tracing data ####
 
 # Get file list
 
@@ -56,15 +55,15 @@ figfiles <- list.files(
   full.names = TRUE, recursive = TRUE
 )
 
+# Filter used to separate "learned" figures in a separate file list if user is
+# checking for explicit learning.
 
-# Filter used to separate "learned" figures in a separate file list if user is checking for explicit learning.
-
-# NOTE: If the user did not check for explicit learning then the figfiles list is unaltered and all shapes are returned
+# NOTE: If the user did not check for explicit learning then the figfiles list
+# is unaltered and all shapes are returned
 
 is_learned <- str_detect(basename(figfiles), "learned")
 learnedfiles <- figfiles[is_learned]
 figfiles <- figfiles[!is_learned]
-
 
 # Import all figure and response data into a single data frame (slow)
 
@@ -78,7 +77,6 @@ figdat <- map_df(figfiles, function(f) {
   )
 })
 
-
 # Get id, session, block, trial, and date info from file names
 
 cols_from_name <- c("id", "session", "block", "trial", "date")
@@ -87,7 +85,6 @@ figdat <- figdat %>%
   mutate(fname = gsub("[a-z\\.]", "", fname)) %>%
   separate(fname, cols_from_name, sep = "_", convert = TRUE) %>%
   arrange(id, session, block, trial)
-
 
 # Extract and parse figure vertex point data
 
@@ -102,7 +99,6 @@ points <- figdat %>%
   mutate(points = str_sub(points, 3, -3)) %>%
   separate_rows(points, sep = "\\), \\(") %>%
   separate(points, c("x", "y"), sep = ", ", convert = TRUE)
-
 
 # Extract and parse figure segment data
 
@@ -124,7 +120,6 @@ frames <- figdat %>%
   separate_rows(frames, sep = "\\), \\(") %>%
   separate(frames, c("x", "y", "time"), sep = ", ", convert = TRUE)
 
-
 # Extract and parse figure tracing data (from physical trials)
 
 tracings <- figdat %>%
@@ -136,7 +131,7 @@ tracings <- figdat %>%
 
 
 
-### Learned figure import and parsing ###
+#### Learned figure import and parsing ####
 
 # If any learned figures, coerce those into a data frame too
 
