@@ -126,8 +126,6 @@ get_angle_diffs <- function(dx, dy, skip = 0) {
     theta - (2 * pi) * sign(theta),
     theta
   )
-  #First point has no change in direction hence angle difference of 0
-  theta[1]=0
 
   theta
 }
