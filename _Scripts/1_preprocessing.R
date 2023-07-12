@@ -3,7 +3,8 @@
 ##########################################
 
 
-### Import required packages and functions ###
+
+#### Import required packages and functions ####
 
 library(dplyr)
 library(TSEntropies)
@@ -15,13 +16,14 @@ source("./_Scripts/_functions/physical.R")
 source("./_Scripts/_functions/visualization.R")
 
 
-### Import figure data ###
+
+#### Import figure data ####
 
 source("./_Scripts/0_import.R")
 
 
 
-### Analyze figure stimuli ###
+#### Analyze figure stimuli ####
 
 # First, get bezier path length by summing distances between frames
 
@@ -29,7 +31,6 @@ pathlen_summary <- frames %>%
   group_by(id, session, block, trial) %>%
   mutate(seglen = line_length(lag(x), lag(y), x, y)) %>%
   summarize(PLstim = sum(seglen, na.rm = TRUE))
-
 
 # Calculate real bezier path length, sinuosity, and total absolute curvature
 
@@ -43,16 +44,10 @@ figsummary <- segments %>%
   group_by(id, session, block, trial) %>%
   summarize(
     real_length = sum(curve_len),
-    total_point_dist = sum(line_len),
-    totabscurv = total_abs_curvature(
-      start.x, start.y,
-      end.x, end.y,
-      ctrl.x, ctrl.y
-    )
+    total_point_dist = sum(line_len)
   ) %>%
   mutate(sinuosity = real_length / total_point_dist) %>%
-  select(c(1:trial, real_length, sinuosity, totabscurv))
-
+  select(c(1:trial, real_length, sinuosity))
 
 # Calculate turning angle for entropy metrics
 
@@ -72,7 +67,6 @@ turnangledat <- segments %>%
     theta = get_angle_diffs(x - lag(x), y - lag(y))
   )
 
-
 # Calculate entropy metrics from turning angle data
 
 entropy_summary <- turnangledat %>%
@@ -84,7 +78,6 @@ entropy_summary <- turnangledat %>%
     approx_en = ApEn(theta),
     sample_en = SampEn(theta)
   )
-
 
 # Join path length and entropy metrics to rest of figure data
 
@@ -102,7 +95,6 @@ origins <- points %>%
   group_by(id, session, block, trial) %>%
   summarize(origin.x = x[1], origin.y = y[1])
 
-
 # Calculate useful metrics for data filtering and drop all repeated points
 
 responsedat <- tracings %>%
@@ -114,22 +106,6 @@ responsedat <- tracings %>%
     origin.dist = line_length(origin.x, origin.y, x, y)
   ) %>%
   filter(is.na(dist) | dist > 0)
-
-#### Read in visual trial inspection ####
-
-#this df should have 5 columns id (num),session (num),block (num),trial (num) & error (chr)
-#error column should have a unique string pattern for each filter
-# 1) "no_shape"
-# 2) "failed_end"
-# 3) "glitch_trial"
-# 4) "false_starts"
-# 5) "hand_noise"
-# 6) "incomplete_tracing"
-# 7) "gap_trials"
-# 8) "hit_screen_edge"
-
-errors <- read_csv("~/Desktop/TraceLabAnalysis-master/_Data/errors.csv")
-
 
 # Flag and drop any trials with no formed shape
 
@@ -152,13 +128,13 @@ no_shape_trials <- responsedat %>%
 if (plot_filters) {
   plot_trials(no_shape_trials, responsedat, outdir = "./filters/no_shape")
 }
+
 trial_key <- c("id", "session", "block", "trial")
 
 errors <- left_join(errors, no_shape_trials, by = trial_key)%>%
   select(1:5,no_shape)
 
 responsedat <- anti_join(responsedat, no_shape_trials, by = trial_key)
-
 
 # Flag and remove glitch points during tracings
 
@@ -261,7 +237,6 @@ errors <- left_join(errors, hand_noise_trials, by = trial_key)%>%
 
 responsedat <- subset(responsedat, !hnoise)
 
-
 # Flag and remove false start samples
 
 responsedat <- responsedat %>%
@@ -305,8 +280,8 @@ if (plot_filters) {
   plot_trials(failed_end_trials, responsedat, "done", "./filters/done")
 }
 
-errors <- left_join(errors, failed_end_trials, by = trial_key)%>%
-  select(1:10,failed_end)
+errors <- left_join(errors, failed_end_trials, by = trial_key) %>%
+  select(1:10, failed_end)
 
 responsedat <- subset(responsedat, !done)
 
@@ -336,8 +311,8 @@ if (plot_filters) {
   plot_trials(gap_trials, responsedat, "gap", "./filters/large_gap")
 }
 
-errors <- left_join(errors, gap_trials, by = trial_key)%>%
-  select(1:11,any_gaps)
+errors <- left_join(errors, gap_trials, by = trial_key) %>%
+  select(1:11, any_gaps)
 
 responsedat <- anti_join(responsedat, gap_trials, by = trial_key)
 
@@ -352,11 +327,11 @@ edge_trials <- responsedat %>%
   ) %>%
   filter(hit_top_edge | hit_bottom_edge | hit_left_edge | hit_right_edge)
 
-errors <- left_join(errors, edge_trials, by = trial_key)%>%
+errors <- left_join(errors, edge_trials, by = trial_key) %>%
   mutate(
-    hit_edge = ifelse(hit_top_edge | hit_bottom_edge | hit_left_edge | hit_right_edge==TRUE,
-                      TRUE, FALSE)) %>%
-  select(1:12,hit_edge)
+    hit_edge = ifelse(hit_top_edge | hit_bottom_edge | hit_left_edge | 
+                        hit_right_edge == TRUE, TRUE, FALSE)) %>%
+  select(1:12, hit_edge)
 
 # Compare results against visual inspection
 
@@ -373,7 +348,9 @@ responsedat <- responsedat %>%
   ) %>%
   select(-c(done, glitch, false_start, hnoise, gap))
 
-### Prepare tracing & figure data for accuracy analysis ###
+
+
+#### Prepare tracing & figure data for accuracy analysis ####
 
 # Get duration and path length for all tracings
 
@@ -385,12 +362,10 @@ tracesummary <- responsedat %>%
   ) %>%
   mutate(vresp = PLresp / mt_clip)
 
-
 # Reinterpolate dropped/filtered points in figures by time
 
 resp_interpolated <- responsedat %>%
   group_modify(~ reinterpolate(.$x, .$y, .$time))
-
 
 # Join figure and tracing data into a single data frame
 
@@ -409,7 +384,7 @@ figtrace <- stim_temp %>%
 
 
 
-### Perform accuracy analyses for raw tracing responses ###
+#### Perform accuracy analyses for raw tracing responses ####
 
 # Resample stimulus frames to match trace lengths
 
@@ -451,7 +426,7 @@ err_proc <- figtrace_eq %>%
 
 
 
-### Perform accuracy analyses for equidistant tracing responses ###
+#### Perform accuracy analyses for equidistant tracing responses ####
 
 # Resample stimulus frames to match trace lengths & reinterpolate tracing points
 # to be evenly spaced along path
@@ -508,7 +483,7 @@ err_delta_dtw <- figtrace_equidist %>%
 
 
 
-### Perform accuracy analyses for dtw-processed tracing responses ###
+#### Perform accuracy analyses for dtw-processed tracing responses ####
 
 # Resample stimulus frames to match trace lengths using dtw
 
@@ -550,7 +525,7 @@ err_dtw_proc <- figtrace_dtw %>%
 
 
 
-### Merge summarized figure data with task data ###
+#### Merge summarized figure data with task data ####
 
 # Join all tracing summary data together
 
@@ -563,7 +538,6 @@ tracesummary <- tracesummary %>%
   left_join(err_dtw_proc, by = c("id", "session", "block", "trial")) %>%
   left_join(err_delta_dtw, by = c("id", "session", "block", "trial"))
 
-
 # Generate proper id key for joining figure data to task data
 
 taskdat <- taskdat %>%
@@ -575,7 +549,6 @@ merge_key <- c(
   "block_num" = "block",
   "trial_num" = "trial"
 )
-
 
 # Actually join data
 

@@ -162,3 +162,31 @@ if (length(learnedfiles) > 0) {
   )
 
 }
+
+
+
+#### Import visual inspection of trials ####
+
+# Visual inspection of the trials should be recorded in a .csv with 5 columns
+# id, session, block, trial and error. Additionally, the error column should 
+# have a unique string pattern designated identifying trials that could be 
+# caught by each of the following filters.
+
+# 1) no formed shape filter
+# 2) glitch filter
+# 3) incomplete trials filter
+# 4) hand noise filter
+# 5) false start filter
+# 6) failed end filter
+# 7) gap filter
+# 8) edge filter
+
+col_overrides_error <- cols(
+  id = col_double(),
+  session = col_double(),
+  block = col_double(),
+  trial = col_double(),
+  error = col_character()
+)
+
+errors <- read_csv("./_Data/errors.csv", col_types = col_overrides_error)
