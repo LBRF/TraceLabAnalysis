@@ -1,14 +1,14 @@
-### Figure complexity analysis functions for TraceLab ###
+#### Figure complexity analysis functions for TraceLab ####
 
 
-### Bezier functions ###
+
+#### Bezier functions ####
 
 line_length <- function(start.x, start.y, end.x, end.y) {
   dx <- (end.x - start.x)
   dy <- (end.y - start.y)
   sqrt(dx ** 2 + dy ** 2)
 }
-
 
 # Based on equation & C code from the following link:
 # http://segfaultlabs.com/docs/quadratic-bezier-curve-length
@@ -42,7 +42,6 @@ bezier_length <- function(start.x, start.y, end.x, end.y, ctrl.x, ctrl.y) {
   len
 }
 
-
 get_fig_points <- function(t, start.x, start.y, end.x, end.y, ctrl.x, ctrl.y) {
 
   # Define constants and transition values
@@ -63,7 +62,7 @@ get_fig_points <- function(t, start.x, start.y, end.x, end.y, ctrl.x, ctrl.y) {
 
 
 
-### Total absolute curvature functions ###
+#### Total absolute curvature functions ####
 
 bcurv <- function(t, start.x, start.y, end.x, end.y, ctrl.x, ctrl.y) {
 
@@ -80,7 +79,6 @@ bcurv <- function(t, start.x, start.y, end.x, end.y, ctrl.x, ctrl.y) {
 
   curv
 }
-
 
 total_abs_curvature <- function(start.x, start.y, end.x, end.y, ctrl.x, ctrl.y) {
 
@@ -108,7 +106,7 @@ total_abs_curvature <- function(start.x, start.y, end.x, end.y, ctrl.x, ctrl.y) 
 
 
 
-### Entropy functions ###
+#### Entropy functions ####
 
 get_angle_diffs <- function(dx, dy, skip = 0) {
 

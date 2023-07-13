@@ -1,11 +1,13 @@
-### Filters for cleaning tracing data before processing ###
+#### Filters for cleaning tracing data before processing ####
 
 
-### Import required libraries ###
+#### Import required libraries ####
 
 library(dplyr)
 
 
+
+#### Filters ####
 
 # Flags extra points following unsuccessful trial end
 
@@ -17,6 +19,7 @@ trial_done <- function(origin_dist, timediff, params) {
   min_prop <- params$min_prop
   end_prop <- params$end_prop
   min_pause <- params$min_pause
+  delta_max <- params$delta_max
 
   # Get proportion of tracing complete for each sample
   n_samples <- length(origin_dist)
@@ -27,14 +30,25 @@ trial_done <- function(origin_dist, timediff, params) {
   not_first <- !is.na(lag(origin_dist))
   on_origin <- origin_dist < origin_radius
   further_from_origin <- not_first & origin_dist > lag(origin_dist)
+  delta_dist <- origin_dist-lag(origin_dist)
 
   # Flag all samples after tracing re-enters expanded origin boundary and
   # then starts to get farther away from the origin again (i.e. misses the
   # origin), provided there aren't any remaining samples too far from origin
   entered <- not_first & on_origin & !lag(on_origin)
+  slow_approach <- not_first & delta_dist > -(delta_max) & delta_dist < 0
   on_last_segment <- rev(cumsum(rev(origin_dist > end_radius))) == 0
+  if(sum(on_last_segment)==0){
+    end_outside_end_radius=rev(cumsum(rev(origin_dist < end_radius)))==0
+    origin_dist_rm=origin_dist[!end_outside_end_radius]
+    n_samples_outside=length(origin_dist)-length(origin_dist_rm)
+    on_last_segment=rev(cumsum(rev(origin_dist_rm > end_radius))) == 0
+    on_last_segment=c(on_last_segment,
+                      tail(end_outside_end_radius,n_samples_outside))
+  }
   returned <- cumsum(entered & on_last_segment & eligible) > 0
   missed <- cumsum(returned & further_from_origin) > 0
+  slow_end <- cumsum(returned & slow_approach) > 0
 
   # Flag all samples after tracing stops moving for a while within wider
   # threshold of origin boundary (after wider boundary is exited)
@@ -42,9 +56,8 @@ trial_done <- function(origin_dist, timediff, params) {
   near_end <- prop >= end_prop & lag(origin_dist) < pause_radius
   stopped_near <- cumsum(stopped & near_end) > 0
 
-  missed | stopped_near
+  missed | slow_end | stopped_near
 }
-
 
 # Flags points from touchscreen glitches
 
@@ -91,7 +104,6 @@ is_glitch <- function(x, y, angle_diff, origin_dist, params) {
   angle_glitch | double_glitch | start_glitch | end_glitch
 }
 
-
 # Flag points preceeding abnormal time jump within part of tracing
 
 false_start <- function(origin_dist, timediff, params) {
@@ -113,7 +125,6 @@ false_start <- function(origin_dist, timediff, params) {
 
   false_start
 }
-
 
 # Flag points likely to be due to accidental input from other part of hand
 
@@ -164,7 +175,6 @@ hand_noise <- function(x, y, timediff, angle_diff, origin_dist, params) {
   noise
 }
 
-
 # Flag tracings likely to be accidentally incomplete
 
 is_incomplete <- function(end_gap, size_ratio, len_ratio, shift_diff, params) {
@@ -181,7 +191,6 @@ is_incomplete <- function(end_gap, size_ratio, len_ratio, shift_diff, params) {
 
   too_small | no_return | accidental_end
 }
-
 
 # Flag excessive time or distance gaps during tracings
 

@@ -59,6 +59,12 @@ no_shape_params <- list(
 # - 'min_pause': The minimum time difference (in ms) between two points in the
 #    end proportion of the trace for the trial to be considered done (provided
 #    that the previous sample is within 'pause_radius' of the origin).
+#
+# - 'max_delta': When the tracing enters the origin_radius as described above
+#    and does subsequently not travel away from the origin, max delta describes 
+#    the minimum distance (in px) between two points for the trial to be
+#    considered done (provided that the previous sample is within 'pause_radius'
+#    of the origin).
 
 done_filter_params <- list(
   origin_radius = 50,
@@ -66,7 +72,8 @@ done_filter_params <- list(
   pause_radius = 400,
   min_prop = 0.6,
   end_prop = 0.82,
-  min_pause = 0.100
+  min_pause = 0.100,
+  delta_max = 3
 )
 
 

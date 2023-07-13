@@ -3,7 +3,8 @@
 ###################################
 
 
-### Import required packages ###
+
+#### Import required packages ####
 
 library(readr)
 library(purrr)
@@ -14,7 +15,7 @@ library(stringr)
 
 
 
-### Import task data ###
+#### Import task data ####
 
 # Get file list
 
@@ -23,13 +24,13 @@ taskfiles <- list.files(
   full.names = TRUE
 )
 
-
 # Import trial-by-trial task data
 
 col_overrides <- cols(
   sex = col_factor(levels = c("m", "f")),
   handedness = col_factor(levels = c("l", "r", "a")),
-  random_seed = col_skip()
+  feedback_type = col_character() 
+  # feedback_type must be coerced to char due to presence the use of NA in SQL
 )
 
 options(readr.show_progress = FALSE)
@@ -45,7 +46,7 @@ taskdat <- map_df(taskfiles, function(f) {
 
 
 
-### Import figure and tracing data ###
+#### Import figure and tracing data ####
 
 # Get file list
 
@@ -54,13 +55,15 @@ figfiles <- list.files(
   full.names = TRUE, recursive = TRUE
 )
 
+# Filter used to separate "learned" figures in a separate file list if user is
+# checking for explicit learning.
 
-# Set aside any "learned" figures in a separate file list
+# NOTE: If the user did not check for explicit learning then the figfiles list
+# is unaltered and all shapes are returned
 
 is_learned <- str_detect(basename(figfiles), "learned")
 learnedfiles <- figfiles[is_learned]
 figfiles <- figfiles[!is_learned]
-
 
 # Import all figure and response data into a single data frame (slow)
 
@@ -74,7 +77,6 @@ figdat <- map_df(figfiles, function(f) {
   )
 })
 
-
 # Get id, session, block, trial, and date info from file names
 
 cols_from_name <- c("id", "session", "block", "trial", "date")
@@ -83,7 +85,6 @@ figdat <- figdat %>%
   mutate(fname = gsub("[a-z\\.]", "", fname)) %>%
   separate(fname, cols_from_name, sep = "_", convert = TRUE) %>%
   arrange(id, session, block, trial)
-
 
 # Extract and parse figure vertex point data
 
@@ -99,7 +100,6 @@ points <- figdat %>%
   separate_rows(points, sep = "\\), \\(") %>%
   separate(points, c("x", "y"), sep = ", ", convert = TRUE)
 
-
 # Extract and parse figure segment data
 
 # NOTE: currently will warn/error on linear segments, fix this
@@ -108,10 +108,9 @@ segment_cols <- c("start.x", "start.y", "end.x", "end.y", "ctrl.x", "ctrl.y")
 segments <- figdat %>%
   select(c(id, session, block, trial, segments)) %>%
   mutate(segments = str_sub(segments, 2, -2)) %>%
-  separate_rows(segments, sep = "\\],\\[") %>%
+  separate_rows(segments, sep = "\\),\\(") %>%
   mutate(segments = str_sub(segments, 2, -2)) %>%
   separate(segments, segment_cols, sep = "[^0-9-.]+", convert = TRUE)
-
 
 # Extract and parse figure animation data
 
@@ -120,7 +119,6 @@ frames <- figdat %>%
   mutate(frames = str_sub(frames, 3, -3)) %>%
   separate_rows(frames, sep = "\\), \\(") %>%
   separate(frames, c("x", "y", "time"), sep = ", ", convert = TRUE)
-
 
 # Extract and parse figure tracing data (from physical trials)
 
@@ -133,7 +131,7 @@ tracings <- figdat %>%
 
 
 
-### Learned figure import and parsing ###
+#### Learned figure import and parsing ####
 
 # If any learned figures, coerce those into a data frame too
 
@@ -164,3 +162,31 @@ if (length(learnedfiles) > 0) {
   )
 
 }
+
+
+
+#### Import visual inspection of trials ####
+
+# Visual inspection of the trials should be recorded in a .csv with 5 columns
+# id, session, block, trial and error. Additionally, the error column should 
+# have a unique string pattern designated identifying trials that could be 
+# caught by each of the following filters.
+
+# 1) no formed shape filter
+# 2) glitch filter
+# 3) incomplete trials filter
+# 4) hand noise filter
+# 5) false start filter
+# 6) failed end filter
+# 7) gap filter
+# 8) edge filter
+
+col_overrides_error <- cols(
+  id = col_double(),
+  session = col_double(),
+  block = col_double(),
+  trial = col_double(),
+  error = col_character()
+)
+
+errors <- read_csv("./_Data/errors.csv", col_types = col_overrides_error)
