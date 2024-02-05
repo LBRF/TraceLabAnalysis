@@ -128,7 +128,7 @@ plot_trials <- function(trials, samples, color_code = NULL, outdir = ".") {
   }
 
   # Render and save a PDF plot for each trial in trials
-  for (i in 1:nrow(trials)) {
+  for (i in seq_len(nrow(trials))) {
     vals <- trials[i, ]
     fname <- paste0(paste(
       paste0("p", vals$id), paste0("s", vals$session),
@@ -162,7 +162,7 @@ plot_trial_paths <- function(trials, frames, samples, outdir = ".") {
   }
 
   # Render and save a PDF plot for each trial in trials
-  for (i in 1:nrow(trials)) {
+  for (i in seq_len(nrow(trials))) {
     vals <- trials[i, ]
     fname <- paste0(paste(
       paste0("p", vals$id), paste0("s", vals$session),
