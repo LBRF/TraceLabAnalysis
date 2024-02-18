@@ -62,9 +62,6 @@ get_fig_points <- function(t, start.x, start.y, end.x, end.y, ctrl.x, ctrl.y) {
 }
 
 
-
-### Total absolute curvature functions ###
-
 bcurv <- function(t, start.x, start.y, end.x, end.y, ctrl.x, ctrl.y) {
 
   # Calculate first derivatives of bezier for x and y
@@ -79,31 +76,6 @@ bcurv <- function(t, start.x, start.y, end.x, end.y, ctrl.x, ctrl.y) {
   curv <- ((b1x * b2y) - (b1y * b2x)) / (((b1x^2) + (b1y^2)) ^ (3 / 2))
 
   curv
-}
-
-
-total_abs_curvature <- function(start.x, start.y, end.x, end.y, ctrl.x, ctrl.y) {
-
-  # Calculate total absolute curvature of each segment and sum:
-  # note, this essentially misses the spikes in curvature created by
-  # segment intersections. Consider using turning angle.
-
-  # NOTE: This metric doesn't correlate with any of the other complexity
-  # measures, may be calculating wrong. Revisit and rethink before using.
-
-  t <- seq(0, 1, length = 60)
-  seg_count <- length(start.x)
-  curvatures <- sapply(seq_len(seg_count), function(i) {
-    curv <- bcurv(t,
-      start.x[i], start.y[i],
-      end.x[i], end.y[i],
-      ctrl.x[i], ctrl.y[i]
-    )
-    integrate(splinefun(x = t, y = abs(curv)), 0, 1)$value
-  })
-  totabscurv <- sum(curvatures)
-
-  totabscurv
 }
 
 
