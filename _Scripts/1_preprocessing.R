@@ -65,7 +65,8 @@ turnangledat <- segments %>%
     ~ get_fig_points(tvals,
       .x$start.x, .x$start.y,
       .x$end.x, .x$end.y,
-      .x$ctrl.x, .x$ctrl.y
+      .x$ctrl.x, .x$ctrl.y,
+      equidist = TRUE, n = 150
     )
   ) %>%
   mutate(
