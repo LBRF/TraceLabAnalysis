@@ -44,8 +44,8 @@ reinterpolate <- function(x, y, time, equidistant = FALSE, fps = 60, n = NA) {
 
   # Return new interpolated points
   interpolated <- tibble(
-    x = approx(steps, x, n = out_num, method = "linear")$y,
-    y = approx(steps, y, n = out_num, method = "linear")$y
+    x = approx(steps, x, n = out_num, method = "linear", ties = "ordered")$y,
+    y = approx(steps, y, n = out_num, method = "linear", ties = "ordered")$y
   )
 
   interpolated
