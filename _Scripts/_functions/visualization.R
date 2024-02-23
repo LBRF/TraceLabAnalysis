@@ -6,21 +6,13 @@
 library(tidyr)
 library(ggplot2)
 
+source("./_Scripts/_functions/utils.R")
+
 
 
 ### Load per-project settings ###
 
 source("./_Scripts/_settings.R")
-
-
-
-### Utility Functions ###
-
-# Extracts the data for a given trial from a dataframe
-
-get_trial <- function(dat, p_num, s_num, b_num, t_num) {
-  subset(dat, id == p_num & session == s_num & block == b_num & trial == t_num)
-}
 
 
 

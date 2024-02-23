@@ -11,6 +11,9 @@ library(tibble)
 library(dplyr)
 library(tidyr)
 library(stringr)
+library(progress)
+
+source("./_Scripts/_functions/utils.R")
 
 
 
@@ -25,6 +28,8 @@ taskfiles <- list.files(
 
 
 # Import trial-by-trial task data
+
+progress_msg("Importing TraceLab Data", header = TRUE)
 
 col_overrides <- cols(
   sex = col_factor(levels = c("m", "f")),
@@ -64,7 +69,13 @@ figfiles <- figfiles[!is_learned]
 
 # Import all figure and response data into a single data frame (slow)
 
+pb <- progress_bar$new(
+  format = "    Progress: (:current / :total)", total = length(figfiles)
+)
+
+progress_msg("Importing raw figure data")
 figdat <- map_df(figfiles, function(f) {
+  pb$tick()
   tibble(
     fname = gsub("\\.zip", "", basename(f)),
     points = read_file(unz(f, paste0(fname, ".tlfp"))),
@@ -93,6 +104,7 @@ figdat <- figdat %>%
 # point by splitting on "), ", and then finally we split that column of "x, y"
 # coordinates into two separate x and y columns.
 
+progress_msg("Extracting figure point data")
 points <- figdat %>%
   select(c(id, session, block, trial, points)) %>%
   mutate(points = str_sub(points, 3, -3)) %>%
@@ -105,6 +117,7 @@ points <- figdat %>%
 # NOTE: currently will warn/error on linear segments, fix this
 segment_cols <- c("start.x", "start.y", "end.x", "end.y", "ctrl.x", "ctrl.y")
 
+progress_msg("Extracting figure segment data")
 segments <- figdat %>%
   select(c(id, session, block, trial, segments)) %>%
   mutate(segments = str_sub(segments, 2, -2)) %>%
@@ -115,6 +128,7 @@ segments <- figdat %>%
 
 # Extract and parse figure animation data
 
+progress_msg("Extracting figure frame data")
 frames <- figdat %>%
   select(c(id, session, block, trial, frames)) %>%
   mutate(frames = str_sub(frames, 3, -3)) %>%
@@ -124,6 +138,7 @@ frames <- figdat %>%
 
 # Extract and parse figure tracing data (from physical trials)
 
+progress_msg("Extracting participant tracing data")
 tracings <- figdat %>%
   select(c(id, session, block, trial, tracing)) %>%
   filter(tracing != "NA") %>%
