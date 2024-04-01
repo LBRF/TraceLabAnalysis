@@ -3,7 +3,7 @@
 ############################################
 
 
-### General Settings ###
+#### General Settings ####
 
 # The resolution of the touchscreen used for data collection.
 screen_res <- c(1920, 1080)
@@ -15,7 +15,7 @@ plot_filters <- TRUE
 
 
 
-### Tracing Filter Settings ###
+#### Tracing Filter Settings ####
 
 ## 'No Shape' Filter
 

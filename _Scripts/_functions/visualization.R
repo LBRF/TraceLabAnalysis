@@ -1,7 +1,7 @@
 ### Code for plotting and visualizing TraceLab figures ###
 
 
-### Import required packages ###
+#### Import required packages ####
 
 library(tidyr)
 library(ggplot2)
@@ -10,13 +10,13 @@ source("./_Scripts/_functions/utils.R")
 
 
 
-### Load per-project settings ###
+#### Load per-project settings ####
 
 source("./_Scripts/_settings.R")
 
 
 
-### Functions for plotting single trials ###
+#### Functions for plotting single trials ####
 
 # Plots a stimulus or tracing as a series of points, w/ optional colour coding
 
@@ -104,7 +104,7 @@ plot_tracing_err <- function(px, py, tx, ty) {
 
 
 
-### Functions for plotting multiple trials ###
+#### Functions for plotting multiple trials ####
 
 # Renders PDFs of all trials in a summary data frame to a given output path,
 # colour coding the sample points using the 'color_code' argument

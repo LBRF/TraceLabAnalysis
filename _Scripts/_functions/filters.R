@@ -1,7 +1,7 @@
 ### Filters for cleaning tracing data before processing ###
 
 
-### Import required libraries ###
+#### Import required libraries ####
 
 library(dplyr)
 
@@ -65,7 +65,7 @@ is_glitch <- function(x, y, angle_diff, origin_dist, params) {
   both_large <- dist > min_dist & lead(dist) > min_dist
   sharp_angle <- abs(lead(angle_diff)) > min_angle_diff
   angle_glitch <- eligible & both_large & sharp_angle
-  
+
   # If there are two angle glitches in a row, make sure the first one is really
   # a glitch by checking if the change in angle is still excessively large when
   # ignoring the subsequent glitch point (or if point p + 2 is also a glitch)

@@ -3,7 +3,7 @@
 ##########################################
 
 
-### Import required packages and functions ###
+#### Import required packages and functions ####
 
 library(dplyr)
 library(TSEntropies)
@@ -15,13 +15,13 @@ source("./_Scripts/_functions/physical.R")
 source("./_Scripts/_functions/visualization.R")
 
 
-### Import figure data ###
+#### Import figure data ####
 
 source("./_Scripts/0_import.R")
 
 
 
-### Analyze figure stimuli ###
+#### Analyze figure stimuli ####
 
 # First, get bezier path length by summing distances between frames
 
@@ -90,7 +90,7 @@ figsummary <- pathlen_summary %>%
 
 
 
-### Filter tracing data prior to accuracy analysis ###
+#### Filter tracing data prior to accuracy analysis ####
 
 # Get origin point for each trial
 
@@ -320,7 +320,7 @@ responsedat <- responsedat %>%
 
 
 
-### Prepare tracing & figure data for accuracy analysis ###
+#### Prepare tracing & figure data for accuracy analysis ####
 
 # Get duration and path length for all tracings
 
@@ -356,7 +356,7 @@ figtrace <- stim_temp %>%
 
 
 
-### Perform accuracy analyses for raw tracing responses ###
+#### Perform accuracy analyses for raw tracing responses ####
 
 # Resample stimulus frames to match trace lengths
 
@@ -394,7 +394,7 @@ err_proc <- figtrace_eq %>%
 
 
 
-### Perform accuracy analyses for equidistant tracing responses ###
+#### Perform accuracy analyses for equidistant tracing responses ####
 
 # Resample stimulus frames to match trace lengths & reinterpolate tracing points
 # to be evenly spaced along path
@@ -433,7 +433,7 @@ err_eqd_proc <- figtrace_equidist %>%
 
 
 
-### Perform accuracy analyses for dtw-processed tracing responses ###
+#### Perform accuracy analyses for dtw-processed tracing responses ####
 
 # Resample stimulus frames to match trace lengths using dtw
 
@@ -471,7 +471,7 @@ err_dtw_proc <- figtrace_dtw %>%
 
 
 
-### Merge summarized figure data with task data ###
+#### Merge summarized figure data with task data ####
 
 # Join all tracing summary data together
 

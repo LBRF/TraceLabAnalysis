@@ -3,7 +3,7 @@
 ###################################
 
 
-### Import required packages ###
+#### Import required packages ####
 
 library(readr)
 library(purrr)
@@ -17,7 +17,7 @@ source("./_Scripts/_functions/utils.R")
 
 
 
-### Import task data ###
+#### Import task data ####
 
 # Get file list
 
@@ -50,7 +50,7 @@ taskdat <- map_df(taskfiles, function(f) {
 
 
 
-### Import figure and tracing data ###
+#### Import figure and tracing data ####
 
 # Get file list
 
@@ -148,7 +148,7 @@ tracings <- figdat %>%
 
 
 
-### Learned figure import and parsing ###
+#### Learned figure import and parsing ####
 
 # If any learned figures, coerce those into a data frame too
 
