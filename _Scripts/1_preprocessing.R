@@ -44,14 +44,9 @@ figsummary <- segments %>%
   summarize(
     real_length = sum(curve_len),
     total_point_dist = sum(line_len),
-    totabscurv = total_abs_curvature(
-      start.x, start.y,
-      end.x, end.y,
-      ctrl.x, ctrl.y
-    )
   ) %>%
   mutate(sinuosity = real_length / total_point_dist) %>%
-  select(c(1:trial, real_length, sinuosity, totabscurv))
+  select(c(1:trial, real_length, sinuosity))
 
 
 # Calcuate turning angle for entropy metrics
