@@ -60,7 +60,10 @@ figfiles <- list.files(
 )
 
 
-# Set aside any "learned" figures in a separate file list
+# Separate any "learned" (explicit recall) figures from the other tracings
+
+# NOTE: For datasets from studies where participants were not asked to draw
+# "learned" shapes at the end, this code has no effect.
 
 is_learned <- str_detect(basename(figfiles), "learned")
 learnedfiles <- figfiles[is_learned]
