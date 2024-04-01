@@ -117,16 +117,17 @@ points <- figdat %>%
 
 # Extract and parse figure segment data
 
-# NOTE: currently will warn/error on linear segments, fix this
 segment_cols <- c("start.x", "start.y", "end.x", "end.y", "ctrl.x", "ctrl.y")
 
 progress_msg("Extracting figure segment data")
 segments <- figdat %>%
   select(c(id, session, block, trial, segments)) %>%
   mutate(segments = str_sub(segments, 2, -2)) %>%
-  separate_rows(segments, sep = "\\],\\[") %>%
+  separate_rows(segments, sep = "\\),\\(") %>%
   mutate(segments = str_sub(segments, 2, -2)) %>%
-  separate(segments, segment_cols, sep = "[^0-9-.]+", convert = TRUE)
+  separate(
+    segments, segment_cols, sep = "[^0-9-.]+", convert = TRUE, fill = "left"
+  )
 
 
 # Extract and parse figure animation data
