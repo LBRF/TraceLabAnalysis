@@ -43,7 +43,9 @@ bezier_length <- function(start.x, start.y, end.x, end.y, ctrl.x, ctrl.y) {
 }
 
 
-get_fig_points <- function(t, start.x, start.y, end.x, end.y, ctrl.x, ctrl.y) {
+get_fig_points <- function(
+  t, start.x, start.y, end.x, end.y, ctrl.x, ctrl.y, equidist = FALSE, n = 150
+) {
 
   # Define constants and transition values
   ax <- start.x - ctrl.x
@@ -58,6 +60,21 @@ get_fig_points <- function(t, start.x, start.y, end.x, end.y, ctrl.x, ctrl.y) {
     x = as.vector(t(ctrl.x + ax * (1 - tmat) ** 2 + bx * tmat ** 2)),
     y = as.vector(t(ctrl.y + ay * (1 - tmat) ** 2 + by * tmat ** 2))
   )
+
+  # Optionally reinterpolate figure points to have constant velocity, better
+  # matching the way figures are animated on screen
+  if (equidist) {
+
+    dists <- sqrt((pts$x - lag(pts$x)) ^ 2 + (pts$y - lag(pts$y)) ^ 2)
+    dists[1] <- 0
+    steps <- cumsum(dists)
+
+    pts <- tibble(
+      x = approx(steps, pts$x, n = n, method = "linear", ties = "ordered")$y,
+      y = approx(steps, pts$y, n = n, method = "linear", ties = "ordered")$y
+    )
+  }
+
   pts
 }
 
