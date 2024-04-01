@@ -34,7 +34,7 @@ progress_msg("Importing TraceLab Data", header = TRUE)
 col_overrides <- cols(
   sex = col_factor(levels = c("m", "f")),
   handedness = col_factor(levels = c("l", "r", "a")),
-  random_seed = col_skip()
+  feedback_type = col_character()
 )
 
 options(readr.show_progress = FALSE)
