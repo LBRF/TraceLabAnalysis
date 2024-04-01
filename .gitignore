@@ -1,3 +1,10 @@
 **/.*
 filter*
 !**/.gitignore
+
+# Ignore RStudio & data files
+_Data/*.csv
+**/*.[Rr][Pp]roj
+**/*.[Rr][Dd]a
+**/*.[Rr][Dd]s
+**/*.[Rr][Dd]ata
