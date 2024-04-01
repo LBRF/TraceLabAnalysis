@@ -126,7 +126,7 @@ segments <- figdat %>%
   separate_rows(segments, sep = "\\),\\(") %>%
   mutate(segments = str_sub(segments, 2, -2)) %>%
   separate(
-    segments, segment_cols, sep = "[^0-9-.]+", convert = TRUE, fill = "left"
+    segments, segment_cols, sep = "[^0-9-.]+", convert = TRUE, fill = "right"
   )
 
 

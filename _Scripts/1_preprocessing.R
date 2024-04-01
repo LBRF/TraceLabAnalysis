@@ -55,6 +55,10 @@ points_per_segment <- 60
 tvals <- seq(0, points_per_segment - 1) / points_per_segment
 
 turnangledat <- segments %>%
+  mutate(
+    ctrl.x = ifelse(is.na(ctrl.x), (start.x+end.x) / 2, ctrl.x),
+    ctrl.y = ifelse(is.na(ctrl.y), (start.y+end.y) / 2, ctrl.y)
+  ) %>%
   group_by(id, session, block, trial) %>%
   group_modify(
     ~ get_fig_points(tvals,
@@ -374,27 +378,9 @@ err_raw <- figtrace_eq %>%
     raw_err_mean = mean(err),
     raw_err_sd = sd(err),
     raw_err_paired_sd = paired.sd(err),
-    raw_err_cor = 1 - cor(delta, tdelta, use = "complete.obs"),
-    raw_err_angle = mean(abs(delta - tdelta), na.rm = TRUE)
+    raw_err_cor = 1 - cor(delta, trace.delta, use = "complete.obs"),
+    raw_err_angle = mean(abs(delta - trace.delta), na.rm = TRUE)
   )
-
-
-# Get Procrustes error measures
-
-err_proc <- figtrace_eq %>%
-  group_modify(~ procrustes2df(.$x, .$y, .$trace.x, .$trace.y)) %>%
-  mutate(err = line_length(x, y, proc.x, proc.y)) %>%
-  summarize(
-    translation = translation[1],
-    scale = scale[1],
-    rotation = rotation[1],
-    shape_err_tot = sum(err),
-    shape_err_mean = mean(err),
-    shape_err_sd = sd(err),
-    shape_err_paired_sd = paired.sd(err)
-  )
-
-
 
 #### Perform accuracy analyses for turn angle aligned tracing responses ####
 
