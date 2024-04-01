@@ -1,7 +1,7 @@
 ### Figure complexity analysis functions for TraceLab ###
 
 
-### Bezier functions ###
+#### Bezier functions ####
 
 line_length <- function(start.x, start.y, end.x, end.y) {
   dx <- (end.x - start.x)
@@ -97,7 +97,7 @@ bcurv <- function(t, start.x, start.y, end.x, end.y, ctrl.x, ctrl.y) {
 
 
 
-### Entropy functions ###
+#### Entropy functions ####
 
 get_angle_diffs <- function(dx, dy, skip = 0) {
 

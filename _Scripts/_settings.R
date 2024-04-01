@@ -3,9 +3,9 @@
 ############################################
 
 
-### General Settings ###
+#### General Settings ####
 
-# The resolution of the screen data was collected with.
+# The resolution of the touchscreen used for data collection.
 screen_res <- c(1920, 1080)
 
 # Whether to render plots of points/trials caught by tracing filters
@@ -15,7 +15,7 @@ plot_filters <- TRUE
 
 
 
-### Tracing Filter Settings ###
+#### Tracing Filter Settings ####
 
 ## 'No Shape' Filter
 
@@ -48,7 +48,7 @@ no_shape_params <- list(
 #
 # - 'pause_radius': The maximum distance (in px) that the previous point can be
 #    from the origin for a sufficiently long pause (as defined by 'min_pause')
-#    to be considered a tracing end. 
+#    to be considered a tracing end.
 #
 # - 'min_prop': The minimum proportion of the tracing that needs to be complete
 #    before the tracing can be considered done.
@@ -56,7 +56,7 @@ no_shape_params <- list(
 # - 'end_prop': The minimum proportion of the tracing that needs to be complete
 #    before a sufficiently long pause can be considered a trial end.
 #
-# - 'min_pause': The minimum time difference (in ms) between two points in the
+# - 'min_pause': The minimum time difference (in sec) between two points in the
 #    end proportion of the trace for the trial to be considered done (provided
 #    that the previous sample is within 'pause_radius' of the origin).
 
@@ -121,7 +121,7 @@ glitch_filter_params <- list(
 # - 'max_prop': The maximum proportion of the tracing that can be complete for
 #    prior samples to be flagged as "false start".
 #
-# - 'min_pause': The minimum time difference (in ms) between points for
+# - 'min_pause': The minimum time difference (in sec) between points for
 #    previous points to be dropped.
 
 false_start_params <- list(
@@ -154,7 +154,7 @@ false_start_params <- list(
 # - 'max_size': The maximum allowed height or width of a detected hand noise
 #    region. Flagged regions larger than this size will be ignored.
 #
-# - 'max_timediff': The maximum time gap (in ms) that the two largest jumps in
+# - 'max_timediff': The maximum time gap (in sec) that the two largest jumps in
 #    a tracing can have. If either jump takes longer than this, the points
 #    between them will not be flagged as hand noise.
 #
@@ -213,7 +213,7 @@ hand_noise_params <- list(
 #    centered on the origin point: for example, a tracing where all samples are
 #    to the left of the origin would have a lateral shift of >= 1, whereas a
 #    a tracing centered directly on the origin would have a shift of 0. If a
-#    figure is fairly centered on origin but its tracing is not, this is a 
+#    figure is fairly centered on origin but its tracing is not, this is a
 #    good indicator of an accidental trial end.
 
 incomplete_params <- list(
@@ -236,10 +236,10 @@ incomplete_params <- list(
 #  c) A time + distance + angle filter for catching large gaps during turns
 #  d) A time + distance + angle filter for catching gaps during sharp turns
 #
-# - 'min_pause': The longest allowable pause (in ms) between two samples, beyond
-#    which a trial will be flagged for exclusion.
+# - 'min_pause': The longest allowable pause (in sec) between two samples,
+#    beyond which a trial will be flagged for exclusion.
 #
-# - 'min_timegap': The minimum time difference (in ms) between two samples for
+# - 'min_timegap': The minimum time difference (in sec) between two samples for
 #    any distance between them to be considered an unrecoverable gap.
 #
 # - 'min_dist_b': The minimum distance (in px) between two points for the gap

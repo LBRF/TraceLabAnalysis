@@ -1,7 +1,7 @@
 ### Physical tracing preprocessing and analysis functions for TraceLab ###
 
 
-### Import required packages ###
+#### Import required packages ####
 
 library(tibble)
 library(vegan)
@@ -9,7 +9,7 @@ library(dtw)
 
 
 
-### Utility functions ###
+#### Utility functions ####
 
 # Calculates standard deviation of paired differences
 
@@ -84,7 +84,7 @@ match_lengths <- function(x, y, tx, ty, equidist = FALSE) {
 
 
 
-### Transformation functions ###
+#### Transformation functions ####
 
 procrustes2df <- function(x, y, tx, ty) {
 
