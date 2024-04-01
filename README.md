@@ -14,7 +14,7 @@ These scripts are designed to be a template that different TraceLab analyses can
 All dependencies for these scripts can be installed by running the following line:
 
 ```r
-install.packages(c("tidyverse", "TSEntropies", "vegan", "dtw"))
+install.packages(c("tidyverse", "progress", "TSEntropies", "vegan", "dtw"))
 ```
 
 The scripts have been developed and tested on R 3.6. They may work with older versions of R but are not guaranteed to function correctly.
