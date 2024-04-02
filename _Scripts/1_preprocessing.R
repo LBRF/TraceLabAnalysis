@@ -55,6 +55,10 @@ points_per_segment <- 60
 tvals <- seq(0, points_per_segment - 1) / points_per_segment
 
 turnangledat <- segments %>%
+  mutate(
+    ctrl.x = ifelse(is.na(ctrl.x), (start.x + end.x) / 2, ctrl.x),
+    ctrl.y = ifelse(is.na(ctrl.y), (start.y + end.y) / 2, ctrl.y)
+  ) %>%
   group_by(id, session, block, trial) %>%
   group_modify(
     ~ get_fig_points(tvals,
