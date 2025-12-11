@@ -81,7 +81,7 @@ plot_tracing_pts <- function(px, py, tx, ty, path = FALSE) {
 # points to their corresponding stimulus frames. Tracing and stimulus must have
 # an equal number of frames for this to work properly.
 
-plot_tracing_err <- function(px, py, tx, ty) {
+plot_tracing_err <- function(px, py, tx, ty, line_alpha = 0.5) {
   dat <- data.frame(
     n = seq_along(px),
     fig.x = px, fig.y = py,
@@ -93,7 +93,7 @@ plot_tracing_err <- function(px, py, tx, ty) {
     spread(coord, val)
   ggplot() +
     geom_segment(
-      data = dat, alpha = 0.5,
+      data = dat, alpha = line_alpha,
       aes(x = fig.x, y = fig.y, xend = trace.x, yend = trace.y)
     ) +
     geom_point(data = dat2, aes(x = x, y = y, color = type), alpha = 0.5) +
@@ -155,6 +155,41 @@ plot_trial_paths <- function(trials, frames, samples, outdir = ".") {
     tt <- get_trial(samples, vals$id, vals$session, vals$block, vals$trial)
     suppressWarnings({
       plt <- plot_tracing_pts(tf$x, tf$y, tt$x, tt$y, path = TRUE)
+      ggsave(fname, plt, path = outdir, width = 11, height = 6)
+    })
+  }
+}
+
+
+# Renders PDFs of all trials in a summary data frame to a given output path,
+# visualizing the spatial error for each tracing by drawing lines between
+# matched pairs of points across the tracing and target figure.
+
+plot_trial_errs <- function(trials, figtrace, outdir = ".", line_alpha = 0.5) {
+
+  # Create output dir, deleting first if it already exists
+  mkdir_replace(outdir)
+
+  # Render and save a PDF plot for each trial in trials
+  for (i in seq_len(nrow(trials))) {
+    vals <- trials[i, ]
+    fname <- paste0(paste(
+      paste0("p", vals$id), paste0("s", vals$session),
+      paste0("b", vals$block), paste0("t", vals$trial),
+      sep = "_"
+    ), ".pdf")
+    t <- get_trial(figtrace, vals$id, vals$session, vals$block, vals$trial)
+    if ("trace.x" %in% names(t)) {
+      t <- rename(t, tx = trace.x, ty = trace.y)
+    }
+    if ("trace.x_w" %in% names(t)) {
+      t <- rename(t, x = x_w, y = y_w, tx = trace.x_w, ty = trace.y_w)
+    }
+    if ("proc.x" %in% names(t)) {
+      t <- rename(t, tx = proc.x, ty = proc.y)
+    }
+    suppressWarnings({
+      plt <- plot_tracing_err(t$x, t$y, t$tx, t$ty, line_alpha)
       ggsave(fname, plt, path = outdir, width = 11, height = 6)
     })
   }
