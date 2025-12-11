@@ -17,3 +17,15 @@ progress_msg <- function(msg, header = FALSE) {
     cat(" * ", msg, "...\n")
   }
 }
+
+
+# Creates a new folder, removing it first if it already exists
+
+mkdir_replace <- function(outdir) {
+  if (outdir != ".") {
+    if (dir.exists(outdir)) {
+      unlink(outdir, recursive = TRUE)
+    }
+    dir.create(outdir, recursive = TRUE)
+  }
+}

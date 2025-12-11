@@ -112,12 +112,7 @@ plot_tracing_err <- function(px, py, tx, ty) {
 plot_trials <- function(trials, samples, color_code = NULL, outdir = ".") {
 
   # Create output dir, deleting first if it already exists
-  if (outdir != ".") {
-    if (dir.exists(outdir)) {
-      unlink(outdir, recursive = TRUE)
-    }
-    dir.create(outdir, recursive = TRUE)
-  }
+  mkdir_replace(outdir)
 
   # Render and save a PDF plot for each trial in trials
   for (i in seq_len(nrow(trials))) {
@@ -146,12 +141,7 @@ plot_trials <- function(trials, samples, color_code = NULL, outdir = ".") {
 plot_trial_paths <- function(trials, frames, samples, outdir = ".") {
 
   # Create output dir, deleting first if it already exists
-  if (outdir != ".") {
-    if (dir.exists(outdir)) {
-      unlink(outdir, recursive = TRUE)
-    }
-    dir.create(outdir, recursive = TRUE)
-  }
+  mkdir_replace(outdir)
 
   # Render and save a PDF plot for each trial in trials
   for (i in seq_len(nrow(trials))) {
