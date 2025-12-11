@@ -141,6 +141,30 @@ trial_key <- c("id", "session", "block", "trial")
 responsedat <- anti_join(responsedat, no_shape_trials, by = trial_key)
 
 
+# Remove 2nd shape on trials where participant draws the shape twice
+
+responsedat <- responsedat %>%
+  mutate(timediff = ifelse(is.na(lag(time)), 0, time - lag(time))) %>%
+  mutate(
+    done = trial_done(origin.dist, timediff, redraw_filter_params),
+    done = done & (sum(!done) / n()) < redraw_filter_params$max_prop
+  )
+
+redrawn_shape_trials <- responsedat %>%
+  summarize(
+    samples = n(),
+    num_done = sum(done),
+    mt_diff = max(time[!done]) - max(time),
+    prop_remaining = 1 - (sum(done) / n())
+  ) %>%
+  filter(num_done > 0)
+
+if (plot_filters) {
+  plot_trials(redrawn_shape_trials, responsedat, "done", "./filters/redrawn")
+}
+responsedat <- subset(responsedat, !done)
+
+
 # Flag and remove glitch points during tracings
 
 responsedat <- responsedat %>%
