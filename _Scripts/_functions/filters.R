@@ -76,6 +76,14 @@ is_glitch <- function(x, y, angle_diff, origin_dist, params) {
     angle_glitch <- angle_glitch & (lead(angle_glitch, 2) | sharp_angle_alt)
   }
 
+  # If multiple glitches in a row, check if the second one is actually a glitch
+  # (i.e. further than min_dist from last non-glitch point)
+  if (sum(angle_glitch) > 2) {
+    maybe_midpoint <- angle_glitch & !lag(angle_glitch, 2) & lag(angle_glitch)
+    dist_lag <- sqrt((x - lag(x, 2)) ** 2 + (y - lag(y, 2)) ** 2)
+    angle_glitch <- angle_glitch & !(maybe_midpoint & dist_lag < min_dist)
+  }
+
   # Catch consecutive glitch points, which often have either the same x or y
   # value as the previous/subsequent glitch
   before <- !is.na(lead(x)) & lead(angle_glitch) & (x == lead(x) | y == lead(y))
