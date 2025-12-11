@@ -141,27 +141,6 @@ trial_key <- c("id", "session", "block", "trial")
 responsedat <- anti_join(responsedat, no_shape_trials, by = trial_key)
 
 
-# Trim extra points following failed trial end
-
-responsedat <- responsedat %>%
-  mutate(timediff = ifelse(is.na(lag(time)), 0, time - lag(time))) %>%
-  mutate(done = trial_done(origin.dist, timediff, done_filter_params))
-
-failed_end_trials <- responsedat %>%
-  summarize(
-    samples = n(),
-    num_done = sum(done),
-    mt_diff = max(time[!done]) - max(time),
-    prop_remaining = 1 - (sum(done) / n())
-  ) %>%
-  filter(num_done > 0)
-
-if (plot_filters) {
-  plot_trials(failed_end_trials, responsedat, "done", "./filters/done")
-}
-responsedat <- subset(responsedat, !done)
-
-
 # Flag and remove glitch points during tracings
 
 responsedat <- responsedat %>%
@@ -181,6 +160,27 @@ if (plot_filters) {
   plot_trials(glitch_trials, responsedat, "glitch", "./filters/glitch")
 }
 responsedat <- subset(responsedat, !glitch)
+
+
+# Trim extra points following failed trial end
+
+responsedat <- responsedat %>%
+  mutate(timediff = ifelse(is.na(lag(time)), 0, time - lag(time))) %>%
+  mutate(done = trial_done(origin.dist, timediff, done_filter_params))
+
+failed_end_trials <- responsedat %>%
+  summarize(
+    samples = n(),
+    num_done = sum(done),
+    mt_diff = max(time[!done]) - max(time),
+    prop_remaining = 1 - (sum(done) / n())
+  ) %>%
+  filter(num_done > 0)
+
+if (plot_filters) {
+  plot_trials(failed_end_trials, responsedat, "done", "./filters/done")
+}
+responsedat <- subset(responsedat, !done)
 
 
 # Flag and remove false start samples
