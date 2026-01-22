@@ -118,10 +118,18 @@ redraw_filter_params <- list(
 # lifts their finger at all during the tracing). This filter tries to catch and
 # remove these glitch points so those trials don't need to be excluded.
 #
+# NOTE: The issue causing these glitches has long since been fixed, meaning this
+#       filter should no longer needed for new datasets. It is now disabled by
+#       default, but can be re-enabled below if needed.
+#
 # This filter has four parts: a filter that detects glitches based on angle and
 # distance, two filters that detect whether the first or last points of the
 # tracing are glitch points, respectively, and a final filter that detects
 # multiple glitches in a row when they share x or y positions.
+#
+# - 'enable': Whether the glitch filter is enabled or not. When applied to a
+#    dataset without touchscreen glitches it can create false positives, so it
+#    is disabled by default.
 #
 # - 'min_angle_diff': The minimum absolute change in direction (in degrees) from
 #    the jump towards a point vs the jump away from it for a point to be able to
@@ -140,6 +148,7 @@ redraw_filter_params <- list(
 #    point to be glitch).
 
 glitch_filter_params <- list(
+  enable = FALSE,
   min_angle_diff = 90,
   min_angle_diff_alt = 70,
   min_dist = 100

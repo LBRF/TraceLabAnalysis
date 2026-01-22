@@ -167,23 +167,27 @@ responsedat <- subset(responsedat, !done)
 
 # Flag and remove glitch points during tracings
 
-responsedat <- responsedat %>%
-  mutate(angle_diff = (get_angle_diffs(x - lag(x), y - lag(y)) / pi) * 180) %>%
-  mutate(
-    glitch = is_glitch(x, y, angle_diff, origin.dist, glitch_filter_params)
-  )
+if (glitch_filter_params$enable) {
 
-glitch_trials <- responsedat %>%
-  summarize(
-    samples = n(),
-    glitches = sum(glitch)
-  ) %>%
-  filter(glitches > 0)
+  responsedat <- responsedat %>%
+    mutate(
+      angle_diff = (get_angle_diffs(x - lag(x), y - lag(y)) / pi) * 180,
+      glitch = is_glitch(x, y, angle_diff, origin.dist, glitch_filter_params)
+    )
 
-if (plot_filters) {
-  plot_trials(glitch_trials, responsedat, "glitch", "./filters/glitch")
+  glitch_trials <- responsedat %>%
+    summarize(
+      samples = n(),
+      glitches = sum(glitch)
+    ) %>%
+    filter(glitches > 0)
+
+  if (plot_filters) {
+    plot_trials(glitch_trials, responsedat, "glitch", "./filters/glitch")
+  }
+  responsedat <- subset(responsedat, !glitch)
+
 }
-responsedat <- subset(responsedat, !glitch)
 
 
 # Trim extra points following failed trial end
