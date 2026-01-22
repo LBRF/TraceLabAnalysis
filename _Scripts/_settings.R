@@ -70,6 +70,47 @@ done_filter_params <- list(
 )
 
 
+## "Redrawn Shape" Filter
+
+# Occasionally, participants will trace a shape but fail to end the trial,
+# then proceed to draw the whole shape a second time. This filter tries to
+# catch and remove the points belonging to the second tracing, leaving only
+# the original response.
+#
+# Since these trials are identified by a relatively long pause near the origin
+# point partway through the trial, this filter uses the same "pause near origin"
+# logic as the "trial done" filter above (just with different values) along with
+# a "proportion done" threshold to distinguish redrawn shape trials from other
+# "failed end" trials.
+#
+# - 'pause_radius': The distance from the origin (in px) within which a
+#    sufficiently long pause (as defined by 'min_pause') is considered to be
+#    the start of a second tracing.
+#
+# - 'end_prop': The minimum proportion of the tracing that needs to be complete
+#    before a sufficiently long pause can be considered the start of a second
+#    tracing.
+#
+# - 'max_prop': The maximum proportion of the tracing that can be complete for
+#    a sufficiently long pause to be considered the start of a second tracing.
+#
+# - 'min_pause': The minimum time difference (in sec) between two points in the
+#    middle of the trace (between 'end_prop' and 'max_prop') for the second
+#    point to be considered the start of a second tracing (provided that first
+#    point is within 'pause_radius' of the origin).
+
+redraw_filter_params <- list(
+  pause_radius = 300,
+  end_prop = 0.35,
+  max_prop = 0.7,
+  min_pause = 0.800,
+  # Dummy values for 'done' filter function
+  min_prop = 1.0,
+  origin_radius = 0,
+  end_radius = 0
+)
+
+
 ## Touchscreen Glitch Filter
 
 # Occasionally during a trial, the touchscreen glitches out and jumps the cursor
@@ -77,10 +118,18 @@ done_filter_params <- list(
 # lifts their finger at all during the tracing). This filter tries to catch and
 # remove these glitch points so those trials don't need to be excluded.
 #
+# NOTE: The issue causing these glitches has long since been fixed, meaning this
+#       filter should no longer needed for new datasets. It is now disabled by
+#       default, but can be re-enabled below if needed.
+#
 # This filter has four parts: a filter that detects glitches based on angle and
 # distance, two filters that detect whether the first or last points of the
 # tracing are glitch points, respectively, and a final filter that detects
 # multiple glitches in a row when they share x or y positions.
+#
+# - 'enable': Whether the glitch filter is enabled or not. When applied to a
+#    dataset without touchscreen glitches it can create false positives, so it
+#    is disabled by default.
 #
 # - 'min_angle_diff': The minimum absolute change in direction (in degrees) from
 #    the jump towards a point vs the jump away from it for a point to be able to
@@ -99,6 +148,7 @@ done_filter_params <- list(
 #    point to be glitch).
 
 glitch_filter_params <- list(
+  enable = FALSE,
   min_angle_diff = 90,
   min_angle_diff_alt = 70,
   min_dist = 100

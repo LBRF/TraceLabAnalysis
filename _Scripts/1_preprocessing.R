@@ -141,6 +141,55 @@ trial_key <- c("id", "session", "block", "trial")
 responsedat <- anti_join(responsedat, no_shape_trials, by = trial_key)
 
 
+# Remove 2nd shape on trials where participant draws the shape twice
+
+responsedat <- responsedat %>%
+  mutate(timediff = ifelse(is.na(lag(time)), 0, time - lag(time))) %>%
+  mutate(
+    done = trial_done(origin.dist, timediff, redraw_filter_params),
+    done = done & (sum(!done) / n()) < redraw_filter_params$max_prop
+  )
+
+redrawn_shape_trials <- responsedat %>%
+  summarize(
+    samples = n(),
+    num_done = sum(done),
+    mt_diff = max(time[!done]) - max(time),
+    prop_remaining = 1 - (sum(done) / n())
+  ) %>%
+  filter(num_done > 0)
+
+if (plot_filters) {
+  plot_trials(redrawn_shape_trials, responsedat, "done", "./filters/redrawn")
+}
+responsedat <- subset(responsedat, !done)
+
+
+# Flag and remove glitch points during tracings
+
+if (glitch_filter_params$enable) {
+
+  responsedat <- responsedat %>%
+    mutate(
+      angle_diff = (get_angle_diffs(x - lag(x), y - lag(y)) / pi) * 180,
+      glitch = is_glitch(x, y, angle_diff, origin.dist, glitch_filter_params)
+    )
+
+  glitch_trials <- responsedat %>%
+    summarize(
+      samples = n(),
+      glitches = sum(glitch)
+    ) %>%
+    filter(glitches > 0)
+
+  if (plot_filters) {
+    plot_trials(glitch_trials, responsedat, "glitch", "./filters/glitch")
+  }
+  responsedat <- subset(responsedat, !glitch)
+
+}
+
+
 # Trim extra points following failed trial end
 
 responsedat <- responsedat %>%
@@ -160,27 +209,6 @@ if (plot_filters) {
   plot_trials(failed_end_trials, responsedat, "done", "./filters/done")
 }
 responsedat <- subset(responsedat, !done)
-
-
-# Flag and remove glitch points during tracings
-
-responsedat <- responsedat %>%
-  mutate(angle_diff = (get_angle_diffs(x - lag(x), y - lag(y)) / pi) * 180) %>%
-  mutate(
-    glitch = is_glitch(x, y, angle_diff, origin.dist, glitch_filter_params)
-  )
-
-glitch_trials <- responsedat %>%
-  summarize(
-    samples = n(),
-    glitches = sum(glitch)
-  ) %>%
-  filter(glitches > 0)
-
-if (plot_filters) {
-  plot_trials(glitch_trials, responsedat, "glitch", "./filters/glitch")
-}
-responsedat <- subset(responsedat, !glitch)
 
 
 # Flag and remove false start samples
