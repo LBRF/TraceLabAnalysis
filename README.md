@@ -25,14 +25,12 @@ The scripts have been developed and tested on R 3.6. They may work with older ve
 1. Place all task data (`*.txt`) files exported from TraceLab in `_Data/task/`.
 2. Place all figure data (`*.zip`) files from TraceLab in `_Data/figure/`.
 3. Open a new R session and set the working directory to the root `TraceLabAnalysis/` folder (or whatever you've renamed it to) using `setwd()` or the RStudio menu.
-4. Run one of the following commands in the R terminal:
+4. Run the following commands in the R terminal:
 
 ```r
 source('./_Scripts/0_import.R') # imports task and figure data
-source('./_Scripts/1_preprocessing.R') # imports and preprocesses data
+source('./_Scripts/1_preprocessing.R') # preprocesses and summarizes figure/tracing data
 ```
-
-Running the preprocessing script will also run the import script, so in most cases you just want to run the second line.
 
 To build the rest of the analysis pipeline for a project, additional numbered scripts should be added to the `_Scripts` folder (e.g. `2_descriptives.R`, `3_models.R`, `4_report.R`), the first of which should source the preprocessing script near the top.
 

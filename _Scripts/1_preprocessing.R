@@ -15,11 +15,6 @@ source("./_Scripts/_functions/physical.R")
 source("./_Scripts/_functions/visualization.R")
 
 
-#### Import figure data ####
-
-source("./_Scripts/0_import.R")
-
-
 
 #### Analyze figure stimuli ####
 
