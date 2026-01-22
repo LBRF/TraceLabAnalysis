@@ -381,22 +381,6 @@ err_raw <- figtrace_eq %>%
   )
 
 
-# Get Procrustes error measures
-
-err_proc <- figtrace_eq %>%
-  group_modify(~ procrustes2df(.$x, .$y, .$trace.x, .$trace.y)) %>%
-  mutate(err = line_length(x, y, proc.x, proc.y)) %>%
-  summarize(
-    translation = translation[1],
-    scale = scale[1],
-    rotation = rotation[1],
-    shape_err_tot = sum(err),
-    shape_err_mean = mean(err),
-    shape_err_sd = sd(err),
-    shape_err_paired_sd = paired.sd(err)
-  )
-
-
 
 #### Perform accuracy analyses for equidistant tracing responses ####
 
@@ -417,22 +401,6 @@ err_eqd <- figtrace_equidist %>%
     eqd_err_mean = mean(err),
     eqd_err_sd = sd(err),
     eqd_err_paired_sd = paired.sd(err)
-  )
-
-
-# Get Procrustes error measures
-
-err_eqd_proc <- figtrace_equidist %>%
-  group_modify(~ procrustes2df(.$x, .$y, .$trace.x, .$trace.y)) %>%
-  mutate(err = line_length(x, y, proc.x, proc.y)) %>%
-  summarize(
-    translation_eqd = translation[1],
-    scale_eqd = scale[1],
-    rotation_eqd = rotation[1],
-    shape_eqd_err_tot = sum(err),
-    shape_eqd_err_mean = mean(err),
-    shape_eqd_err_sd = sd(err),
-    shape_eqd_err_paired_sd = paired.sd(err)
   )
 
 
@@ -481,9 +449,7 @@ err_dtw_proc <- figtrace_dtw %>%
 
 tracesummary <- tracesummary %>%
   left_join(err_raw, by = c("id", "session", "block", "trial")) %>%
-  left_join(err_proc, by = c("id", "session", "block", "trial")) %>%
   left_join(err_eqd, by = c("id", "session", "block", "trial")) %>%
-  left_join(err_eqd_proc, by = c("id", "session", "block", "trial")) %>%
   left_join(err_dtw, by = c("id", "session", "block", "trial")) %>%
   left_join(err_dtw_proc, by = c("id", "session", "block", "trial"))
 
