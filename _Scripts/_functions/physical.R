@@ -136,3 +136,49 @@ dtw2df <- function(x, y, tx, ty, step = asymmetric) {
 
   dtw_df
 }
+
+
+dtw2df_angle <- function(x, y, tx, ty, step = mori2006) {
+
+  # Get angle of movement for each consecutive pair of points
+  time <- seq_len(length(x)) * (1 / 60)
+  delt <- atan2(y - lag(y), x - lag(x))
+  tdelt <- atan2(ty - lag(ty), tx - lag(tx))
+
+  # Since angles wrap around from 0 to 360, we need to modify the DTW cost
+  # matrix so that all difference scores are within (-180, 180) and none of
+  # the differences are negative (which breaks the alignment)
+  cmat <- proxy::dist(
+    tdelt[!is.na(tdelt)], delt[!is.na(delt)],
+    method = "Euclidean"
+  )
+  cmat <- ifelse(cmat > pi, cmat - (2 * pi), cmat)
+  cmat <- ifelse(cmat < -pi, cmat + (2 * pi), cmat)
+  cmat <- abs(cmat)
+
+  # Do dynamic time warping and get warped dataframe
+  warped <- dtw(
+    x = cmat,
+    y = NULL,
+    step.pattern = step,
+    window.type = "none",
+    keep.internals = TRUE,
+    distance.only = FALSE,
+    open.end = FALSE,
+    open.begin = FALSE
+  )
+
+  # Return dataframe with warped stimulus and response points
+  dtw_df <- tibble(
+    tw = time[warped$index2 + 1],
+    x = x[warped$index2 + 1],
+    y = y[warped$index2 + 1],
+    delta = na.omit(delt)[warped$index2],
+    ttw = time[warped$index1 + 1],
+    tx = tx[warped$index1 + 1],
+    ty = ty[warped$index1 + 1],
+    tdelta = na.omit(tdelt)[warped$index1]
+  )
+
+  dtw_df
+}

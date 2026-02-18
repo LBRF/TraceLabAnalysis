@@ -466,6 +466,27 @@ err_dtw_proc <- figtrace_dtw %>%
 
 
 
+### Perform accuracy analyses using dtw to align changes in turn angle ###
+
+# Align contours of tracing to stimulus using dynamic time warping
+
+figtrace_equidtw <- figtrace_equidist %>%
+  group_modify(~ dtw2df_angle(.$x, .$y, .$trace.x, .$trace.y))
+
+
+# Get dtw-by-angle error measures
+
+err_angle_dtw <- figtrace_equidtw %>%
+  mutate(err = line_length(x, y, tx, ty)) %>%
+  summarize(
+    dtw_angle_err_tot = sum(err),
+    dtw_angle_err_mean = mean(err),
+    dtw_angle_err_sd = sd(err),
+    dtw_angle_err_paired_sd = paired.sd(err)
+  )
+
+
+
 #### Merge summarized figure data with task data ####
 
 # Join all tracing summary data together
@@ -474,6 +495,7 @@ tracesummary <- tracesummary %>%
   left_join(err_raw, by = c("id", "session", "block", "trial")) %>%
   left_join(err_eqd, by = c("id", "session", "block", "trial")) %>%
   left_join(err_dtw, by = c("id", "session", "block", "trial")) %>%
+  left_join(err_angle_dtw, by = c("id", "session", "block", "trial")) %>%
   left_join(err_dtw_proc, by = c("id", "session", "block", "trial"))
 
 
