@@ -343,7 +343,7 @@ responsedat <- responsedat %>%
     angle_diff = (get_angle_diffs(x - lag(x), y - lag(y)) / pi) * 180,
     dist = line_length(lag(x), lag(y), x, y)
   ) %>%
-  select(-c(done, glitch, false_start, hnoise, gap))
+  select(-any_of(c("done", "glitch", "false_start", "hnoise", "gap")))
 
 
 
